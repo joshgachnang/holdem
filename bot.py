@@ -1,6 +1,8 @@
 import logging
 import sys
 
+from static_hole import strategy
+
 logging.basicConfig(filename="bot.log", level=logging.DEBUG)
 logger = logging.getLogger()
 
@@ -11,6 +13,10 @@ class HoldemBot(object):
         self.settings = {}
         self.match = {}
         self.hand = []
+        self.win_percent = 0
+
+        self.hole_strategy = strategy.StaticHoleStrategy()
+
 
     def output(self, line, action):
         logger.debug("Responding to {} with {}".format(line, action))
@@ -33,15 +39,24 @@ class HoldemBot(object):
         self.round = line[2]
         self.hand = []
         self.match = {}
+        self.win_percent = 0
         logger.info("===============Starting round {}=================".format(
             self.round))
 
     def handle_info(self, line):
         logger.debug("Info: {}".format(line))
+        if line[1] == "hand":
+            self.win_percent = float(
+                self.hole_strategy.get_win_percentage(line[2]))
+            logger.info("Estimated win percentage: {}".format(
+                self.win_percent))
 
     def handle_action(self, line):
         logger.debug("Action: {}".format(line))
-        self.output(line, "check 0")
+        if self.win_percent > 50:
+            self.output(line, "raise 100")
+        else:
+            self.output(line, "check 0")
 
     def run(self):
         logger.debug("Starting up!")
