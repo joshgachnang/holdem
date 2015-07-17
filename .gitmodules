@@ -1,0 +1,6 @@
+[submodule "texasholdem-engine"]
+	path = texasholdem-engine
+	url = https://github.com/theaigames/texasholdem-engine.git
+[submodule "engine"]
+	path = engine
+	url = https://github.com/theaigames/texasholdem-engine.git
