@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 
 FACE_VALUE = {'1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8,
               '9': 9, 'T': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14}
@@ -13,8 +14,9 @@ logger = logging.getLogger()
 class StaticHoleStrategy(object):
     def __init__(self):
         self.data = {}
-        with open('/Users/josh/src/holdem/static_hole/hole_data.json',
-                  'r') as f:
+        with open(os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), 'hole_data.json'),
+                'r') as f:
             self.data = json.load(f)
         print("Hole len {}".format(len(self.data.keys())))
 

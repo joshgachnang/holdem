@@ -3,7 +3,6 @@ import sys
 
 from static_hole import strategy
 
-logging.basicConfig(filename="bot.log", level=logging.DEBUG)
 logger = logging.getLogger()
 
 
@@ -14,9 +13,9 @@ class HoldemBot(object):
         self.match = {}
         self.hand = []
         self.win_percent = 0
+        self.players = {"player1": {}, "player2": {}}
 
         self.hole_strategy = strategy.StaticHoleStrategy()
-
 
     def output(self, line, action):
         logger.debug("Responding to {} with {}".format(line, action))
@@ -31,14 +30,14 @@ class HoldemBot(object):
         if line[1] == "round":
             # Start of a round, reinitialize
             self.start_match(line)
-
+        logger.debug("MATCH GET {}".format(self.match.get(line[1])))
         self.match[line[1]] = line[2]
         logger.debug("Match: {}".format(self.settings))
 
     def start_match(self, line):
         self.round = line[2]
         self.hand = []
-        self.match = {}
+        #self.match = {}
         self.win_percent = 0
         logger.info("===============Starting round {}=================".format(
             self.round))
@@ -50,11 +49,13 @@ class HoldemBot(object):
                 self.hole_strategy.get_win_percentage(line[2]))
             logger.info("Estimated win percentage: {}".format(
                 self.win_percent))
+        elif line[1] in ["post", "stack"]:
+            self.players[line[0]][line[1]] = line[2]
 
     def handle_action(self, line):
         logger.debug("Action: {}".format(line))
         if self.win_percent > 50:
-            self.output(line, "raise 100")
+            self.output(line, "raise {}".format(4 * 50))
         else:
             self.output(line, "check 0")
 
@@ -66,7 +67,7 @@ class HoldemBot(object):
                 if not raw_line:
                     continue
                 line = raw_line.split()
-
+                logger.debug("Line: {}".format(line))
                 # Basic sanity check
                 if len(line) != 3:
                     logger.error("Invalid input: {}".format(raw_line))
@@ -87,5 +88,7 @@ class HoldemBot(object):
 
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "--debug":
+        logging.basicConfig(filename="bot.log", level=logging.DEBUG)
     bot = HoldemBot()
     bot.run()

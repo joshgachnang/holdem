@@ -1,7 +1,8 @@
 # Created by .ignore support plugin (hsz.mobi)
-bot.log
 engine/
 *.pyc
 *.idea
 *~
 *__pycache__*
+*.log
+bot.zip
