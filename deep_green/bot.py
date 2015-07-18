@@ -61,6 +61,8 @@ class HoldemBot(object):
             self.hand = utils.highest_hand(self.hole, self.table)
             self.highest_hand = utils.highest_hand(self.hole, self.table,
                                                    self.hand)
+        elif line[0] == "player1" and line[1] == "raise":
+            self.match['raise'] = line[2]
 
     def handle_action(self, line):
         logger.debug("Action: {}".format(line))
