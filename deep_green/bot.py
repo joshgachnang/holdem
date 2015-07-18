@@ -1,6 +1,7 @@
 import logging
 import sys
 
+import betting
 from static_hole import strategy
 import utils
 
@@ -18,7 +19,7 @@ class HoldemBot(object):
         self.players = {"player1": {}, "player2": {}}
 
         self.hole_strategy = strategy.StaticHoleStrategy()
-        self.table_strategy = strategy.StaticHoleStrategy()
+        self.table_strategy = betting.TableStrategy()
 
     def output(self, line, action):
         logger.debug("Responding to {} with {}".format(line, action))
@@ -65,13 +66,16 @@ class HoldemBot(object):
         logger.debug("Action: {}".format(line))
         if self.hole and not self.table:
             multiplier = self.hole_strategy.get_multiplier(self.hole)
-            max_bet = int(self.match['bigBlind']) * multiplier
+            max_bet = int(self.match.get('big_blind', '20')) * multiplier
             self.bet(line, max_bet=max_bet)
         elif self.hole and self.table:
             multiplier = self.table_strategy.get_table_multiplier(
                 self.hole, self.table, self.hand)
-            max_bet = self.match['bigBlind'] * multiplier
+            max_bet = int(self.match.get('big_blind', '20')) * multiplier
             self.bet(line, max_bet=max_bet)
+        else:
+            logger.error("Defaulting to check 0")
+            self.output(line, "check 0")
 
     def bet(self, line, max_bet=None):
         if not max_bet and self.match.get('raise', 0) > 0:
@@ -132,6 +136,9 @@ class HoldemBot(object):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(filename="../bot.log", level=logging.DEBUG)
+    if len(sys.argv) > 1 and sys.argv[1] == "--debug":
+        logging.basicConfig(filename="../bot.log", level=logging.DEBUG)
+    else:
+        logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
     bot = HoldemBot()
     bot.run()

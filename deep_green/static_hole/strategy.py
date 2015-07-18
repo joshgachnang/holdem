@@ -12,7 +12,7 @@ class StaticHoleStrategy(object):
                                  'hole_data.json')
         with open(data_path, 'r') as f:
             self.data = json.load(f)
-        print("Hole len {}".format(len(self.data.keys())))
+        logger.debug("Hole len {}".format(len(self.data.keys())))
 
     def get_win_percentage(self, hand):
         suited = "s" if hand[0][1] == hand[1][1] else ""
