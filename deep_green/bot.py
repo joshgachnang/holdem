@@ -12,7 +12,7 @@ class HoldemBot(object):
     def __init__(self):
         self.round = 0
         self.settings = {}
-        self.match = {'amount_to_call': 0}
+        self.match = {'amount_to_call': 0, 'big_blind': 0, 'small_blind': 0}
         self.hole = []
         self.table = []
         self.win_percent = 0
@@ -34,8 +34,11 @@ class HoldemBot(object):
         if line[1] == "round":
             # Start of a round, reinitialize
             self.start_match(line)
-        self.match[line[1]] = line[2]
-        logger.debug("Match: {}".format(self.settings))
+        elif line[1] in ("amount_to_call", "big_blind", "small_blind"):
+            self.match[line[1]] = int(line[2])
+        else:
+            self.match[line[1]] = line[2]
+        logger.debug("Saving match: {}".format(line))
 
     def start_match(self, line):
         self.round = line[2]
@@ -58,8 +61,6 @@ class HoldemBot(object):
                 self.win_percent))
         elif line[1] in ["post", "stack"]:
             self.players[line[0]][line[1]] = line[2]
-        elif line[1] == "amount_to_call":
-            self.match["amount_to_call"] = line[2]
         elif line[1] == "table":
             # Reset bets
             self.match['round_bets'] = 0
@@ -103,11 +104,11 @@ class HoldemBot(object):
 
         if not max_bet:
             logger.info("Checking, no max bet")
-            self.output(line, "check 0")
+            self.output(line, "call 0")
         elif if_call_total > max_bet:
             logger.info("Amount to raise {} would put us over max bet {}".format(amount_to_call, max_bet))
             self.output(line, "fold 0")
-        elif max_raise - amount_to_call < amount_to_call * 2:
+        elif max_raise - amount_to_call < amount_to_call * 2 or max_raise < self.match['big_blind']:
             logger.info("Rounding raise {} down to a call".format(max_raise))
             self.output(line, "call 0")
         else:
@@ -159,7 +160,7 @@ class HoldemBot(object):
                 else:
                     logger.info("Unhandled line: {}".format(raw_line))
             except Exception as e:
-                logger.exception("Handling line failed")
+                logger.exception("Handling line failed: {}".format(raw_line))
 
 
 if __name__ == "__main__":

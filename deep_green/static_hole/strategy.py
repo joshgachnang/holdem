@@ -23,12 +23,14 @@ class StaticHoleStrategy(object):
         win = float(self.get_win_percentage(hole))
 
         if win < 40:
-            return 1
-        elif win < 50:
             return 2
-        elif win < 60:
+        elif 40 <= win < 50:
+            return 3
+        elif 50 <= win < 60:
             return 5
-        elif win < 70:
-            return 100
+        elif 60 <= win < 65:
+            return 10
+        elif 65 <= win < 80:
+            return 25
         else:
-            return 1000
+            return 100
