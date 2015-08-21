@@ -22,11 +22,13 @@ class StaticHoleStrategy(object):
     def get_multiplier(self, hole):
         win = float(self.get_win_percentage(hole))
 
-        if win < 50:
+        if win < 40:
             return 1
-        elif win < 60:
+        elif win < 50:
             return 2
-        elif win < 70:
-            return 3
-        else:
+        elif win < 60:
             return 5
+        elif win < 70:
+            return 100
+        else:
+            return 1000

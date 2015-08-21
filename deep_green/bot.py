@@ -12,7 +12,7 @@ class HoldemBot(object):
     def __init__(self):
         self.round = 0
         self.settings = {}
-        self.match = {}
+        self.match = {'amount_to_call': 0}
         self.hole = []
         self.table = []
         self.win_percent = 0
@@ -49,6 +49,8 @@ class HoldemBot(object):
     def handle_info(self, line):
         logger.debug("Info: {}".format(line))
         if line[1] == "hand":
+            # Init bets
+            self.match['round_bets'] = 0
             self._parse_hand(line[2])
             self.win_percent = float(
                 self.hole_strategy.get_win_percentage(self.hole))
@@ -56,7 +58,11 @@ class HoldemBot(object):
                 self.win_percent))
         elif line[1] in ["post", "stack"]:
             self.players[line[0]][line[1]] = line[2]
+        elif line[1] == "amount_to_call":
+            self.match["amount_to_call"] = line[2]
         elif line[1] == "table":
+            # Reset bets
+            self.match['round_bets'] = 0
             self._parse_table(line[2])
             self.hand = utils.highest_hand(self.hole, self.table)
             self.highest_hand = utils.highest_hand(self.hole, self.table,
@@ -79,18 +85,35 @@ class HoldemBot(object):
             logger.error("Defaulting to check 0")
             self.output(line, "check 0")
 
-    def bet(self, line, max_bet=None):
-        if not max_bet and self.match.get('raise', 0) > 0:
-            logger.info("Folding on raise, no max bet")
-            self.output(line, "fold 0")
-        elif not max_bet:
+    def bet(self, line, max_bet=0):
+        """Decide how much to bet
+
+        If no max bet, check if possible
+        If the total bet would be more than max_bet, fold
+        If amount to total bet so far + call is close to max_bet, call (hide some of our betting strategy
+            and prevent a re-raise)
+        Else, raise to max bet
+
+        :return:
+        """
+        # What calling will put the total pot at
+        amount_to_call = int(self.match['amount_to_call'])
+        if_call_total = amount_to_call + self.match['round_bets']
+        max_raise = max_bet - self.match['round_bets']
+
+        if not max_bet:
             logger.info("Checking, no max bet")
             self.output(line, "check 0")
-        elif self.match['amount_to_call'] > max_bet:
-            logger.info("Amount to raise {} greater than max bet {}".format(self.match['amount_to_call'], max_bet))
+        elif if_call_total > max_bet:
+            logger.info("Amount to raise {} would put us over max bet {}".format(amount_to_call, max_bet))
+            self.output(line, "fold 0")
+        elif max_raise - amount_to_call < amount_to_call * 2:
+            logger.info("Rounding raise {} down to a call".format(max_raise))
+            self.output(line, "call 0")
         else:
-            logger.info("Raising {}".format(max_bet))
-            self.output(line, "raise {}".format(max_bet))
+            logger.info("Raising {}".format(max_raise))
+            self.output(line, "raise {}".format(max_raise))
+            self.match['round_bets'] += max_raise
 
     def _parse_hand(self, hand):
         self.hole = []
