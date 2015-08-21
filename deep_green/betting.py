@@ -1,14 +1,14 @@
 import utils
 
 MULTIPLIER = {
-    'straight_flush': 25,
-    'foak': 30,
-    'full_house': 15,
-    'flush': 10,
-    'straight': 8,
-    'toak': 6,
-    'two_pair': 4,
-    'pair': 3
+    'straight_flush': 300,
+    'foak': 200,
+    'full_house': 60,
+    'flush': 50,
+    'straight': 40,
+    'toak': 30,
+    'two_pair': 25,
+    'pair': 15
 }
 
 

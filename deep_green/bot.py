@@ -81,11 +81,13 @@ class HoldemBot(object):
 
     def bet(self, line, max_bet=None):
         if not max_bet and self.match.get('raise', 0) > 0:
-            logger.info("Folding")
+            logger.info("Folding on raise, no max bet")
             self.output(line, "fold 0")
-        if not max_bet:
-            logger.info("Checking")
+        elif not max_bet:
+            logger.info("Checking, no max bet")
             self.output(line, "check 0")
+        elif self.match['amount_to_call'] > max_bet:
+            logger.info("Amount to raise {} greater than max bet {}".format(self.match['amount_to_call'], max_bet))
         else:
             logger.info("Raising {}".format(max_bet))
             self.output(line, "raise {}".format(max_bet))
